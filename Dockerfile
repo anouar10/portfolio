@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # ---- stage 2: serve it ------------------------------------------------------
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.30-alpine AS runtime
 
 # Drop nginx's default site and use ours.
 RUN rm /etc/nginx/conf.d/default.conf
