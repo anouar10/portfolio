@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Creates a builder on the docker-container driver.
       # Without this, `cache-to: type=gha` fails with
