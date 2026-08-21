@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- stage 1: build the static site -----------------------------------------
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 
 WORKDIR /app
 
