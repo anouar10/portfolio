@@ -29,7 +29,7 @@ jobs:
       # not the GitHub account (anouar10). Pushing to a namespace you do not
       # own is what produced the original "insufficient scopes" error.
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
