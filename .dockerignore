@@ -1,0 +1,8 @@
+node_modules
+dist
+dist-legacy
+.git
+.gitignore
+README.md
+deploy/letsencrypt
+*.log

@@ -1,0 +1,221 @@
+/* Component styles, in the order the components appear on the page. */
+
+/* --- top bar ------------------------------------------------------------- */
+.bar {
+  position: sticky; top: 0; z-index: 30;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.bar-in { display: flex; align-items: center; gap: 16px; height: 60px; }
+.mark {
+  font-family: var(--mono); font-weight: 600; font-size: 13px; letter-spacing: .04em;
+  color: var(--ink); text-decoration: none; white-space: nowrap;
+}
+.mark span { color: var(--accent); }
+.bar-nav { display: none; gap: 4px; margin-left: auto; }
+@media (min-width: 800px) { .bar-nav { display: flex; } }
+.bar-nav a {
+  font-size: 13.5px; color: var(--muted); text-decoration: none;
+  padding: 7px 11px; border-radius: 7px; transition: color .18s, background .18s;
+}
+.bar-nav a:hover { color: var(--ink); background: var(--accent-wash); }
+.bar-actions { display: flex; gap: 8px; margin-left: auto; }
+@media (min-width: 800px) { .bar-actions { margin-left: 12px; } }
+
+.ctrl {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 34px; min-width: 34px; padding: 0 10px;
+  font-family: var(--mono); font-size: 11.5px; font-weight: 500; letter-spacing: .06em;
+  color: var(--ink-soft); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+  transition: border-color .18s, color .18s, transform .12s;
+}
+.ctrl:hover { border-color: var(--accent); color: var(--accent); }
+.ctrl:active { transform: translateY(1px); }
+.ctrl svg { width: 15px; height: 15px; }
+
+/* --- hero ---------------------------------------------------------------- */
+.hero { padding: 64px 0 52px; }
+@media (min-width: 800px) { .hero { padding: 92px 0 76px; } }
+.hero-grid { display: grid; gap: 40px; align-items: start; }
+@media (min-width: 900px) { .hero-grid { grid-template-columns: 1.35fr .95fr; gap: 56px; } }
+.hero h1 { margin: 14px 0 20px; max-width: 15ch; }
+.hero-body { font-size: 16px; max-width: 54ch; }
+.hero-now {
+  margin-top: 16px; padding-left: 15px; border-left: 2px solid var(--accent);
+  font-size: 15px; color: var(--ink-soft); max-width: 54ch;
+}
+.hero-cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 18px; border-radius: 9px; font-size: 14px; font-weight: 500;
+  text-decoration: none; cursor: pointer; border: 1px solid transparent;
+  transition: transform .12s, opacity .18s, border-color .18s, color .18s;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--accent); color: #FFF; }
+:root[data-theme="dark"] .btn-primary { color: #05201F; }
+.btn-primary:hover { opacity: .9; }
+.btn-ghost { border-color: var(--line-strong); color: var(--ink-soft); background: transparent; }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* the identity card — a record, not a headshot */
+.card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden;
+}
+.card-id {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px; border-bottom: 1px solid var(--line); background: var(--sunken);
+}
+.avatar {
+  position: relative; flex: none; width: 68px; height: 68px; border-radius: 12px;
+  overflow: hidden; background: var(--accent-wash);
+  border: 1px solid var(--line-strong); box-shadow: var(--shadow);
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar-fallback {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 22px; font-weight: 600; letter-spacing: .04em;
+  color: var(--accent); background:
+    linear-gradient(135deg, var(--accent-wash), transparent 70%), var(--surface);
+}
+.card-id-text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.card-id-name { font-size: 16.5px; font-weight: 600; letter-spacing: -.012em; color: var(--ink); }
+.card-id-role { font-size: 13.5px; color: var(--accent); }
+.card-id-loc {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .05em; color: var(--muted);
+}
+.status { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+.card-row {
+  display: grid; grid-template-columns: 86px 1fr; gap: 12px;
+  padding: 11px 16px; border-bottom: 1px solid var(--line); align-items: baseline;
+}
+.card-row:last-child { border-bottom: 0; }
+.card-val { font-size: 13.5px; color: var(--ink); line-height: 1.45; }
+.card-val a { color: var(--accent); text-decoration: none; }
+.card-val a:hover { text-decoration: underline; }
+
+/* --- filters ------------------------------------------------------------- */
+.filters { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 22px; }
+.chip {
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: .05em;
+  padding: 7px 12px; border-radius: 999px; cursor: pointer;
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--line); transition: all .18s;
+}
+.chip:hover { color: var(--ink); border-color: var(--line-strong); }
+.chip[aria-pressed="true"] {
+  background: var(--accent-wash); color: var(--accent); border-color: var(--accent);
+}
+
+/* --- experience records (the signature element) -------------------------- */
+.records { border-top: 1px solid var(--line); }
+.record { border-bottom: 1px solid var(--line); }
+.record-btn {
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 16px;
+  width: 100%; padding: 18px 14px 18px 16px; text-align: left;
+  background: transparent; border: 0; cursor: pointer; position: relative;
+  transition: background .18s;
+}
+@media (min-width: 720px) {
+  .record-btn { grid-template-columns: 178px 1fr auto; align-items: baseline; padding-left: 18px; }
+}
+.record-btn::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--accent); transform: scaleY(0); transform-origin: top;
+  transition: transform .25s ease;
+}
+.record-btn:hover { background: var(--accent-wash); }
+.record-btn:hover::before, .record.open .record-btn::before { transform: scaleY(1); }
+.record-period {
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.record-main { min-width: 0; }
+.record-title { font-size: 16px; font-weight: 600; color: var(--ink); letter-spacing: -.01em; }
+.record-co { font-size: 13.5px; color: var(--muted); margin-top: 2px; }
+.record-co b { color: var(--ink-soft); font-weight: 500; }
+.caret {
+  width: 16px; height: 16px; color: var(--muted); flex: none;
+  transition: transform .25s ease, color .18s; grid-row: 1; justify-self: end;
+}
+@media (max-width: 719px) { .caret { grid-row: 2; align-self: center; } }
+.record.open .caret { transform: rotate(180deg); color: var(--accent); }
+
+.record-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s ease; }
+.record.open .record-panel { grid-template-rows: 1fr; }
+.record-panel-in { overflow: hidden; }
+.record-body { padding: 2px 16px 22px; }
+@media (min-width: 720px) { .record-body { padding-left: 196px; } }
+.record-summary { font-size: 14.5px; color: var(--ink-soft); margin-bottom: 10px; }
+.record-list { margin: 0; padding: 0; list-style: none; }
+.record-list li {
+  position: relative; padding-left: 18px; margin-bottom: 8px;
+  font-size: 14.5px; line-height: 1.6; color: var(--ink-soft);
+}
+.record-list li::before {
+  content: ""; position: absolute; left: 2px; top: 9px;
+  width: 5px; height: 5px; border-radius: 1px; background: var(--accent); opacity: .75;
+}
+.note-inline {
+  display: inline-block; margin-bottom: 10px; padding: 4px 9px; border-radius: 6px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+  background: var(--gold-wash); color: var(--gold);
+}
+.stack-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; }
+.tech {
+  font-family: var(--mono); font-size: 11.5px; padding: 4px 9px;
+  border-radius: 6px; background: var(--sunken); border: 1px solid var(--line); color: var(--ink-soft);
+}
+.badge {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: 5px; background: var(--accent-wash); color: var(--accent); margin-left: 8px;
+}
+.empty { padding: 40px 16px; text-align: center; }
+.empty p { color: var(--muted); font-size: 14.5px; }
+
+/* --- skills -------------------------------------------------------------- */
+.skills { display: grid; gap: 18px; }
+@media (min-width: 660px) { .skills { grid-template-columns: 1fr 1fr; gap: 20px; } }
+.skill-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 16px 17px;
+}
+.skill-card .field { display: block; margin-bottom: 11px; }
+.skill-items { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* --- education ----------------------------------------------------------- */
+.edu { display: grid; gap: 16px; }
+@media (min-width: 800px) { .edu { grid-template-columns: 1fr 1fr; gap: 20px; } }
+.edu-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 20px; border-top: 2px solid var(--accent);
+}
+.edu-card h3 { margin-bottom: 4px; }
+.edu-school { font-size: 13.5px; color: var(--muted); }
+.edu-period { font-family: var(--mono); font-size: 11.5px; color: var(--accent); margin-top: 10px; display: block; }
+.edu-detail { font-size: 14px; margin-top: 12px; }
+
+/* --- contact ------------------------------------------------------------- */
+.contact-grid { display: grid; gap: 14px; margin-top: 24px; }
+@media (min-width: 700px) { .contact-grid { grid-template-columns: repeat(3, 1fr); } }
+.contact-card {
+  display: block; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 17px; text-decoration: none;
+  transition: border-color .18s, transform .18s;
+}
+.contact-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.contact-card .field { display: block; margin-bottom: 7px; }
+.contact-val { font-size: 14.5px; color: var(--ink); word-break: break-word; }
+
+/* --- footer -------------------------------------------------------------- */
+.foot {
+  border-top: 1px solid var(--line); padding: 26px 0 36px;
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;
+}
+.foot p { font-size: 12.5px; color: var(--muted); }
+
+.contact-lead { max-width: 46ch; font-size: 15.5px; }

@@ -1,0 +1,101 @@
+services:
+  # --- reverse proxy + automatic HTTPS ---------------------------------------
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # send every plain-HTTP request to HTTPS
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --certificatesresolvers.le.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      - --accesslog=true
+      - --accesslog.format=json
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+      - traefik-logs:/var/log/traefik
+    networks: [edge]
+
+  # --- the portfolio ---------------------------------------------------------
+  portfolio:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: anwar-portfolio:latest
+    container_name: portfolio
+    restart: unless-stopped
+    volumes:
+      - nginx-logs:/var/log/nginx
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.portfolio.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)
+      - traefik.http.routers.portfolio.entrypoints=websecure
+      - traefik.http.routers.portfolio.tls.certresolver=le
+      - traefik.http.services.portfolio.loadbalancer.server.port=80
+      # strip the www. prefix so you have one canonical address
+      - traefik.http.routers.portfolio.middlewares=www-redirect
+      - traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www\.(.*)
+      - traefik.http.middlewares.www-redirect.redirectregex.replacement=https://$${1}
+      - traefik.http.middlewares.www-redirect.redirectregex.permanent=true
+    networks: [edge]
+
+  # --- self-hosted, cookieless analytics -------------------------------------
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    container_name: umami
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://umami:${DB_PASSWORD}@umami-db:5432/umami
+      DATABASE_TYPE: postgresql
+      APP_SECRET: ${APP_SECRET}
+      # no cookie banner needed: Umami stores nothing on the visitor's device
+      DISABLE_TELEMETRY: "1"
+    depends_on:
+      umami-db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.umami.rule=Host(`stats.${DOMAIN}`)
+      - traefik.http.routers.umami.entrypoints=websecure
+      - traefik.http.routers.umami.tls.certresolver=le
+      - traefik.http.services.umami.loadbalancer.server.port=3000
+    networks: [edge, internal]
+
+  umami-db:
+    image: postgres:16-alpine
+    container_name: umami-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - umami-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    # deliberately not on the edge network: the database is never exposed
+    networks: [internal]
+
+volumes:
+  umami-data:
+  nginx-logs:
+  traefik-logs:
+
+networks:
+  edge:
+  internal:
+    internal: true

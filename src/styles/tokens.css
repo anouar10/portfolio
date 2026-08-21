@@ -1,0 +1,53 @@
+/* Design tokens. Every colour in the project resolves to one of these. */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --maxw: 1080px;
+  --gut: 24px;
+  --r: 10px;
+  font-family: var(--sans);
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  transition: background .35s ease, color .35s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+:root[data-theme="light"] {
+  --bg: #EDF1F4;
+  --surface: #FFFFFF;
+  --sunken: #F4F7F9;
+  --ink: #0E1720;
+  --ink-soft: #37485A;
+  --muted: #64798C;
+  --line: #D5DEE6;
+  --line-strong: #B9C7D3;
+  --accent: #0B7F7C;
+  --accent-ink: #065E5C;
+  --accent-wash: rgba(11,127,124,.09);
+  --gold: #8A6212;
+  --gold-wash: rgba(138,98,18,.10);
+  --shadow: 0 1px 2px rgba(14,23,32,.05), 0 8px 24px rgba(14,23,32,.05);
+}
+
+:root[data-theme="dark"] {
+  --bg: #0A1015;
+  --surface: #121A21;
+  --sunken: #0E161C;
+  --ink: #E6EEF4;
+  --ink-soft: #B7C7D4;
+  --muted: #7F97A8;
+  --line: #1F2C36;
+  --line-strong: #2E3F4C;
+  --accent: #35C9BE;
+  --accent-ink: #6FE0D6;
+  --accent-wash: rgba(53,201,190,.12);
+  --gold: #D6A94F;
+  --gold-wash: rgba(214,169,79,.13);
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}
+
+.wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gut); }

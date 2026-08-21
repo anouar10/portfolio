@@ -1,0 +1,15 @@
+# Production override: run a pre-built image instead of building on the server.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml pull portfolio
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d portfolio
+#
+# Building on a home server is slow and competes with the live site for CPU.
+# GitHub Actions builds the image once; the server only pulls it.
+#
+# `pull_policy: always` plus an explicit `image:` means Compose uses the
+# registry copy rather than rebuilding from the base file's build context.
+
+services:
+  portfolio:
+    image: ghcr.io/${GITHUB_REPOSITORY}:latest
+    pull_policy: always
