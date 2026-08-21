@@ -1,15 +1,100 @@
-# Production override: run a pre-built image instead of building on the server.
+# Production overlay: Traefik terminates TLS and routes to the portfolio.
 #
-#   docker compose -f docker-compose.yml -f docker-compose.prod.yml pull portfolio
-#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d portfolio
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 #
-# Building on a home server is slow and competes with the live site for CPU.
-# GitHub Actions builds the image once; the server only pulls it.
-#
-# `pull_policy: always` plus an explicit `image:` means Compose uses the
-# registry copy rather than rebuilding from the base file's build context.
+# Bring this up in stages -- see the notes file. Starting all five containers
+# at once means a failure anywhere looks identical to a failure anywhere else.
 
 services:
+  # --- reverse proxy + automatic HTTPS ---------------------------------------
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # send every plain-HTTP request to HTTPS
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --certificatesresolvers.le.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      - --accesslog=true
+      - --accesslog.format=json
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+      - traefik-logs:/var/log/traefik
+    networks: [edge]
+
+  # --- the portfolio ---------------------------------------------------------
+  # No `build:` here. The image comes from Docker Hub, built by CI.
   portfolio:
-    image: ghcr.io/${GITHUB_REPOSITORY}:latest
-    pull_policy: always
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.portfolio.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)
+      - traefik.http.routers.portfolio.entrypoints=websecure
+      - traefik.http.routers.portfolio.tls.certresolver=le
+      - traefik.http.services.portfolio.loadbalancer.server.port=80
+      # strip the www. prefix so you have one canonical address
+      - traefik.http.routers.portfolio.middlewares=www-redirect
+      - traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www\.(.*)
+      - traefik.http.middlewares.www-redirect.redirectregex.replacement=https://$${1}
+      - traefik.http.middlewares.www-redirect.redirectregex.permanent=true
+
+  # --- self-hosted, cookieless analytics -------------------------------------
+  # Optional. Delete these two services and the umami-data volume if you do
+  # not want them -- the portfolio works fine without them.
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    container_name: umami
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://umami:${DB_PASSWORD}@umami-db:5432/umami
+      DATABASE_TYPE: postgresql
+      APP_SECRET: ${APP_SECRET}
+      # no cookie banner needed: Umami stores nothing on the visitor's device
+      DISABLE_TELEMETRY: "1"
+    depends_on:
+      umami-db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.umami.rule=Host(`stats.${DOMAIN}`)
+      - traefik.http.routers.umami.entrypoints=websecure
+      - traefik.http.routers.umami.tls.certresolver=le
+      - traefik.http.services.umami.loadbalancer.server.port=3000
+    networks: [edge, internal]
+
+  umami-db:
+    image: postgres:16-alpine
+    container_name: umami-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - umami-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    # deliberately not on the edge network: the database is never exposed
+    networks: [internal]
+
+volumes:
+  umami-data:
+  traefik-logs:
+
+networks:
+  internal:
+    internal: true

@@ -1,39 +1,37 @@
-.PHONY: up down rebuild logs stats-tail visits refs bots top-pages
+# Convenience wrappers. Run from the deploy/ directory.
+COMPOSE      := docker compose -f docker-compose.yml -f docker-compose.prod.yml
+COMPOSE_TEST := docker compose -f docker-compose.yml -f docker-compose.local.yml
 
-up:            ## build and start everything
-	docker compose up -d --build
+.PHONY: test up down logs pull update ps health
 
-down:          ## stop everything (data volumes survive)
-	docker compose down
+## Stage 1: serve on :8080 with no proxy, to prove the image works
+test:
+	$(COMPOSE_TEST) up -d
+	@echo "http://localhost:8080  and  /healthz"
 
-rebuild:       ## rebuild the site after editing the portfolio source
-	docker compose up -d --build portfolio
+## Stage 2: the real stack, with Traefik and TLS
+up:
+	$(COMPOSE) up -d
 
-logs:          ## follow all container logs
-	docker compose logs -f
+down:
+	$(COMPOSE) down
 
-# --- raw access-log queries --------------------------------------------------
+logs:
+	$(COMPOSE) logs -f --tail=100
 
-stats-tail:    ## live view of incoming requests
-	docker compose exec portfolio tail -f /var/log/nginx/access.json
+pull:
+	$(COMPOSE) pull
 
-visits:        ## page views per day, bots excluded
-	@docker compose exec -T portfolio cat /var/log/nginx/access.json \
-	 | jq -r 'select(.path=="/" or (.path|endswith(".html"))) \
-	          | select(.user_agent|test("bot|crawl|spider";"i")|not) \
-	          | .time[0:10]' \
-	 | sort | uniq -c | sort -rn
+## Deploy a new image built by CI
+update:
+	$(COMPOSE) pull portfolio
+	$(COMPOSE) up -d portfolio
+	$(COMPOSE) exec -T portfolio true && echo "portfolio restarted"
+	docker image prune -f --filter "until=168h"
 
-refs:          ## which application links were opened, and when
-	@docker compose exec -T portfolio cat /var/log/nginx/access.json \
-	 | jq -r 'select(.ref != "") | "\(.time[0:16])  \(.ref)  \(.ip)"' \
-	 | sort -r | head -50
+ps:
+	$(COMPOSE) ps
 
-top-pages:     ## most requested paths
-	@docker compose exec -T portfolio cat /var/log/nginx/access.json \
-	 | jq -r '.path' | sort | uniq -c | sort -rn | head -20
-
-bots:          ## how much of your traffic is automated
-	@docker compose exec -T portfolio cat /var/log/nginx/access.json \
-	 | jq -r 'if (.user_agent|test("bot|crawl|spider";"i")) then "bot" else "human" end' \
-	 | sort | uniq -c
+health:
+	@docker inspect --format '{{.Name}}: {{.State.Health.Status}}' portfolio 2>/dev/null \
+	  || echo "portfolio is not running"

@@ -1,0 +1,6 @@
+# Publishes the site on http://localhost:8080 with no TLS and no proxy.
+# Use this to prove the image actually works before adding Traefik.
+services:
+  portfolio:
+    ports:
+      - "8080:80"
